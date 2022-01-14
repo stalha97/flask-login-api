@@ -36,6 +36,7 @@ def register():
     try:
         # Marshmallow - Validate
         user = user_schema.load(request.json)
+        print(dir(request))
         print(user)
 
         # Give error if user already exist
