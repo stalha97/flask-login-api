@@ -1,4 +1,3 @@
-from flask import current_app
 from myApi import db
 
 
@@ -10,7 +9,3 @@ class User(db.Model):
 
     def __repr__(self):
         return f"User('{self.username}', '{self.email}', '{self.password}')"
-
-# user = User(username="talha", email="talha@gmail.com", password="asdasd")
-
-# print(user)

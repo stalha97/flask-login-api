@@ -10,25 +10,22 @@ users = Blueprint("users", __name__)
 
 user_schema = UserSchema()
 
+# Testing Marshmallow, and validations
+"""
+my_user_dict = {"email": "talha@gmail.com", "password": "talha123", "username": "Talha"}
+my_user_obj = User(email="talha@gmail.com", password="talha123", username="Talha")
 
-# @users.route("/register", methods=["POST"])
-# def register():
-#     errors = user_schema.validate(request.json)
-#     if errors:
-#         return {
-#             "errors": errors,
-#         }, 500
-#     else:
-#         user = user_schema.load(request.json)
-#         print(user)
-#         # print(user.email)
-#         if user_exists(user.email):
-#             return {"error": "User with this email already exists"}, 422
+loaded = user_schema.load(my_user_dict)
+print(type(loaded))
 
-#         db.session.add(user)
-#         db.session.commit()
+unloaded1 = user_schema.dump(loaded)
+print(unloaded1)
+print(type(unloaded1))
 
-#         return {"message": "User successfully created"}, 202
+unloaded2 = user_schema.dump(my_user_obj)
+print(unloaded2)
+print(type(unloaded2))
+"""
 
 
 @users.route("/register", methods=["POST"])
@@ -36,21 +33,23 @@ def register():
     try:
         # Marshmallow - Validate
         user = user_schema.load(request.json)
-        print(dir(request))
-        print(user)
 
         # Give error if user already exist
         if user_exists(user.email):
             return {"error": "User with this email already exists"}, 422
         # Otherwise add user to database
         else:
+            new_user = user_schema.dump(user)
             db.session.add(user)
             db.session.commit()
-            return {"message": "User successfully created"}, 202
+            return {
+                "message": "User successfully created",
+                "user": new_user,
+            }, 202
 
     # return validation error
     except ValidationError as err:
-        return {"errors": err.messages}, 500
+        return {"error": err.messages}, 500
 
 
 @users.route("/login", methods=["POST"])
