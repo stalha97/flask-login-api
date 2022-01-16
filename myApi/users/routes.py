@@ -5,10 +5,26 @@ from myApi.models import User
 from myApi.users.schemas import UserSchema
 from myApi.users.utils import user_exists
 
+from webargs import fields, validate
+from webargs.flaskparser import use_args
+
 
 users = Blueprint("users", __name__)
 
 user_schema = UserSchema()
+
+
+# Return validation errors as JSON
+@users.errorhandler(422)
+@users.errorhandler(400)
+def handle_error(err):
+    headers = err.data.get("headers", None)
+    messages = err.data.get("messages", ["Invalid request."])
+    if headers:
+        return jsonify({"errors": messages.get("json")}), err.code, headers
+    else:
+        return jsonify({"errors": messages.get("json")}), err.code
+
 
 # Testing Marshmallow, and validations
 """
@@ -29,7 +45,14 @@ print(type(unloaded2))
 
 
 @users.route("/register", methods=["POST"])
-def register():
+@use_args(
+    {
+        "username": fields.Str(required=True, validate=validate.Length(max=20)),
+        "email": fields.Email(required=True, validate=validate.Length(max=120)),
+        "password": fields.Str(required=True, validate=validate.Length(max=60)),
+    }
+)
+def register(args):
     try:
         # Marshmallow - Validate
         user = user_schema.load(request.json)
@@ -53,34 +76,35 @@ def register():
 
 
 @users.route("/login", methods=["POST"])
-def login():
-    req = request.json
-    if not req.get("email") or not req.get("password"):
-        return {"error": "Email or Password missing"}
+@use_args(
+    {
+        "email": fields.Email(required=True, validate=validate.Length(max=120)),
+        "password": fields.Str(required=True, validate=validate.Length(max=60)),
+    }
+)
+def login(args):
+    # Get User by Email
+    user = User.query.filter_by(email=args["email"]).first()
 
-    errors = user_schema.validate(
-        {"email": req["email"], "password": req["password"]}, partial=True
-    )
-    if errors:
-        return {
-            "errors": errors,
-        }, 500
+    # If User does not exist
+    if not user:
+        return {"error": "Email does not exist"}
+    # If Password entered is correct
+    if user.password == args["password"]:
+        session["user"] = user
+        session["email"] = args["email"]
+        return {"message": "Login Successful"}, 200
+    # If Invalid password
     else:
-        user = User.query.filter_by(email=req["email"]).first()
-        if not user:
-            return {"error": "Email does not exist"}
-        if user.password == req["password"]:
-            session["user"] = user
-            session["email"] = req["email"]
-            return {"message": "Login Successful"}, 200
-        else:
-            return {"error": "Invalid Password"}
+        return {"error": "Invalid Password"}
 
 
 @users.route("/logout")
 def logout():
+    # Return error if User does not exist in session
     if not session["user"]:
         return {"error": "No one is logged in right now"}
+    # Logout if User exist in session
     else:
         session["user"] = None
         return {"message": "User logged out successfuly"}
@@ -88,7 +112,9 @@ def logout():
 
 @users.route("/account")
 def account():
+    # Return User if exist in session
     if session.get("user"):
         return {"user": {"email": session["email"]}}
+    # Return error if no account logged in
     else:
         return {"message": "No one logged in right now"}
