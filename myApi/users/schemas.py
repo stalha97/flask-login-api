@@ -13,4 +13,5 @@ class UserSchema(Schema):
 
     @post_load
     def create_user(self, data, **kwargs):
+        # return User(username="",email="", password="")
         return User(**data)

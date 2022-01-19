@@ -59,20 +59,25 @@ def register(args):
 
         # Give error if user already exist
         if user_exists(user.email):
-            return {"error": "User with this email already exists"}, 422
+            return jsonify({"error": "User with this email already exists"}), 422
         # Otherwise add user to database
         else:
             new_user = user_schema.dump(user)
             db.session.add(user)
             db.session.commit()
-            return {
-                "message": "User successfully created",
-                "user": new_user,
-            }, 202
+            return (
+                jsonify(
+                    {
+                        "message": "User successfully created",
+                        "user": new_user,
+                    }
+                ),
+                202,
+            )
 
     # return validation error
     except ValidationError as err:
-        return {"error": err.messages}, 500
+        return jsonify({"error": err.messages}), 500
 
 
 @users.route("/login", methods=["POST"])
@@ -88,33 +93,33 @@ def login(args):
 
     # If User does not exist
     if not user:
-        return {"error": "Email does not exist"}
+        return jsonify({"error": "Email does not exist"})
     # If Password entered is correct
     if user.password == args["password"]:
         session["user"] = user
         session["email"] = args["email"]
-        return {"message": "Login Successful"}, 200
+        return jsonify({"message": "Login Successful"}), 200
     # If Invalid password
     else:
-        return {"error": "Invalid Password"}
+        return jsonify({"error": "Invalid Password"})
 
 
 @users.route("/logout")
 def logout():
     # Return error if User does not exist in session
     if not session["user"]:
-        return {"error": "No one is logged in right now"}
+        return jsonify({"error": "No one is logged in right now"})
     # Logout if User exist in session
     else:
         session["user"] = None
-        return {"message": "User logged out successfuly"}
+        return jsonify({"message": "User logged out successfuly"})
 
 
 @users.route("/account")
 def account():
     # Return User if exist in session
     if session.get("user"):
-        return {"user": {"email": session["email"]}}
+        return jsonify({"user": {"email": session["email"]}})
     # Return error if no account logged in
     else:
-        return {"message": "No one logged in right now"}
+        return jsonify({"message": "No one logged in right now"})
