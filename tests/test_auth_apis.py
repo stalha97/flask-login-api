@@ -39,7 +39,7 @@ class TestAuthentication(unittest.TestCase):
         self.test_app.preprocess_request()
 
         # In-Memory Database
-        self.test_app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
+        self.test_app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///test.db"
         self.test_app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
         db.init_app(self.test_app)
         db.create_all()
@@ -105,7 +105,31 @@ class TestAuthentication(unittest.TestCase):
         self.assertEqual(res.status_code, 422)
 
     # register user, pass extra values in request
+    def test_register_extra_values_in_request(self):
+        const_user = self.const_user
+
+        # Test Invalid Username
+        user = const_user.copy()
+        user["an_extra_field"] = "extra field"
+        res = self.client.post("/register", json=user)
+        # print(res.data)
+        self.assertEqual(res.status_code, 422)
+
     # register when an account already exists
+    def test_register_user_already_exists(self):
+        # breakpoint()
+        const_user = self.const_user.copy()
+
+        user = const_user.copy()
+        res = self.client.post("/register", json=user)
+        # print(res.data)
+        self.assertEqual(res.status_code, 202)
+
+        user = const_user.copy()
+        user["username"] = "User2 repeated"
+        res = self.client.post("/register", json=user)
+        # print(res.data)
+        self.assertEqual(res.status_code, 422)
 
     # login user with missing fields
     # login user with invalid values
