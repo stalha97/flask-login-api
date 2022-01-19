@@ -51,7 +51,7 @@ class TestAuthentication(unittest.TestCase):
     def test_register_correct_case(self):
         user = self.const_user.copy()
         res = self.client.post("/register", json=user)
-        # print(res.data)
+        # print(res.json)
         self.assertEqual(res.status_code, 202)
 
     # register user with missing fields
@@ -62,21 +62,21 @@ class TestAuthentication(unittest.TestCase):
         user = const_user.copy()
         del user["username"]
         res = self.client.post("/register", json=user)
-        # print(res.data)
+        # print(res.json)
         self.assertEqual(res.status_code, 422)
 
         # Test Missing Email
         user = const_user.copy()
         del user["email"]
         res = self.client.post("/register", json=user)
-        # print(res.data)
+        # print(res.json)
         self.assertEqual(res.status_code, 422)
 
         # Test Missing Password
         user = const_user.copy()
         del user["password"]
         res = self.client.post("/register", json=user)
-        # print(res.data)
+        # print(res.json)
         self.assertEqual(res.status_code, 422)
 
     # register user with invalid values
@@ -87,21 +87,21 @@ class TestAuthentication(unittest.TestCase):
         user = const_user.copy()
         user["username"] = "a" * 30
         res = self.client.post("/register", json=user)
-        # print(res.data)
+        # print(res.json)
         self.assertEqual(res.status_code, 422)
 
         # Test Invalid Email
         user = const_user.copy()
         user["email"] = "wrong_email_format"
         res = self.client.post("/register", json=user)
-        # print(res.data)
+        # print(res.json)
         self.assertEqual(res.status_code, 422)
 
         # Test Invalid Password
         user = const_user.copy()
         user["password"] = "a" * 65
         res = self.client.post("/register", json=user)
-        # print(res.data)
+        # print(res.json)
         self.assertEqual(res.status_code, 422)
 
     # register user, pass extra values in request
@@ -112,24 +112,33 @@ class TestAuthentication(unittest.TestCase):
         user = const_user.copy()
         user["an_extra_field"] = "extra field"
         res = self.client.post("/register", json=user)
-        # print(res.data)
+        # print(res.json)
         self.assertEqual(res.status_code, 422)
 
     # register when an account already exists
     def test_register_user_already_exists(self):
-        # breakpoint()
         const_user = self.const_user.copy()
 
         user = const_user.copy()
         res = self.client.post("/register", json=user)
-        # print(res.data)
+        # print(res.json)
         self.assertEqual(res.status_code, 202)
 
         user = const_user.copy()
         user["username"] = "User2 repeated"
         res = self.client.post("/register", json=user)
-        # print(res.data)
+        # print(res.json)
         self.assertEqual(res.status_code, 422)
+
+    # login happy case
+    def test_login_happy_case(self):
+        user = self.const_user.copy()
+        res = self.client.post("/register", json=user)
+        self.assertEqual(res.status_code, 202)
+
+        del user["username"]
+        res = self.client.post("/login", json=user)
+        self.assertEqual(res.status_code, 200)
 
     # login user with missing fields
     # login user with invalid values

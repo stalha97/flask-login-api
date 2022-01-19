@@ -93,7 +93,7 @@ def login(args):
 
     # If User does not exist
     if not user:
-        return jsonify({"error": "Email does not exist"})
+        return jsonify({"error": "Email does not exist"}), 422
     # If Password entered is correct
     if user.password == args["password"]:
         session["user"] = user
@@ -101,7 +101,7 @@ def login(args):
         return jsonify({"message": "Login Successful"}), 200
     # If Invalid password
     else:
-        return jsonify({"error": "Invalid Password"})
+        return jsonify({"error": "Invalid Password"}), 422
 
 
 @users.route("/logout")
