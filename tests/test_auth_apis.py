@@ -3,7 +3,6 @@ from myApi import create_app
 
 # from flask_sqlalchemy import SQLAlchemy
 from myApi.models import *
-import json
 
 # db = SQLAlchemy()
 # test_app = create_app()
@@ -48,56 +47,65 @@ class TestAuthentication(unittest.TestCase):
     def tearDown(self):
         db.drop_all()
 
-    def test_correct(self):
+    # Register Happy/Correct Case
+    def test_register_correct_case(self):
         user = self.const_user.copy()
         res = self.client.post("/register", json=user)
         # print(res.data)
         self.assertEqual(res.status_code, 202)
 
     # register user with missing fields
-    # def test_register_user_missing_fields(self):
-    #     const_user = self.const_user
+    def test_register_user_missing_fields(self):
+        const_user = self.const_user
 
-    #     user = const_user.copy()
-    #     del user["username"]
-    #     res = client.post("/register", data=user, content_type="application/json")
-    #     self.assertEqual(res.status_code, 422)
+        # Test Missing Username
+        user = const_user.copy()
+        del user["username"]
+        res = self.client.post("/register", json=user)
+        # print(res.data)
+        self.assertEqual(res.status_code, 422)
 
-    #     user = const_user.copy()
-    #     del user["email"]
-    #     res = client.post("/register", data=user, content_type="application/json")
-    #     self.assertEqual(res.status_code, 422)
+        # Test Missing Email
+        user = const_user.copy()
+        del user["email"]
+        res = self.client.post("/register", json=user)
+        # print(res.data)
+        self.assertEqual(res.status_code, 422)
 
-    #     user = const_user.copy()
-    #     del user["password"]
-    #     res = client.post("/register", data=user, content_type="application/json")
-    #     self.assertEqual(res.status_code, 422)
+        # Test Missing Password
+        user = const_user.copy()
+        del user["password"]
+        res = self.client.post("/register", json=user)
+        # print(res.data)
+        self.assertEqual(res.status_code, 422)
 
     # register user with invalid values
-    # def test_register_user_invalid_values(self):
-    #     const_user = self.const_user
-    #     # print(const_user)
+    def test_register_user_invalid_values(self):
+        const_user = self.const_user
 
-    #     user = const_user.copy()
-    #     user["username"] = "a" * 30
-    #     res = self.client.post("/register", data=json.dumps(user))
-    #     breakpoint()
-    #     self.assertEqual(res.status_code, 422)
+        # Test Invalid Username
+        user = const_user.copy()
+        user["username"] = "a" * 30
+        res = self.client.post("/register", json=user)
+        # print(res.data)
+        self.assertEqual(res.status_code, 422)
 
-    #     user = const_user.copy()
-    #     user["email"] = "wrong_email_format"
-    #     res = client.post("/register", data=json.dumps(user))
-    #     self.assertEqual(res.status_code, 422)
+        # Test Invalid Email
+        user = const_user.copy()
+        user["email"] = "wrong_email_format"
+        res = self.client.post("/register", json=user)
+        # print(res.data)
+        self.assertEqual(res.status_code, 422)
 
-    #     user = const_user.copy()
-    #     user["password"] = "a" * 65
-
-    #     print(user)
-    #     res = client.post("/register", data=json.dumps(user))
-    #     print(res.data)
-    #     self.assertEqual(res.status_code, 422)
+        # Test Invalid Password
+        user = const_user.copy()
+        user["password"] = "a" * 65
+        res = self.client.post("/register", json=user)
+        # print(res.data)
+        self.assertEqual(res.status_code, 422)
 
     # register user, pass extra values in request
+    # register when an account already exists
 
     # login user with missing fields
     # login user with invalid values
