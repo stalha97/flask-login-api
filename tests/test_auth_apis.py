@@ -53,6 +53,7 @@ class TestAuthentication(unittest.TestCase):
         res = self.client.post("/register", json=user)
         # print(res.json)
         self.assertEqual(res.status_code, 202)
+        return user
 
     # register user with missing fields
     def test_register_user_missing_fields(self):
@@ -132,18 +133,89 @@ class TestAuthentication(unittest.TestCase):
 
     # login happy case
     def test_login_happy_case(self):
-        user = self.const_user.copy()
-        res = self.client.post("/register", json=user)
-        self.assertEqual(res.status_code, 202)
-
+        user = self.test_register_correct_case()
         del user["username"]
         res = self.client.post("/login", json=user)
         self.assertEqual(res.status_code, 200)
 
+        return user
+
     # login user with missing fields
+    def test_login_user_missing_fields(self):
+        const_user = self.test_register_correct_case()
+        del const_user["username"]
+
+        # Missing field # 1 (email)
+        user = const_user.copy()
+        del user["email"]
+        res = self.client.post("/login", json=user)
+        # print(res.json)
+        self.assertEqual(res.status_code, 422)
+
+        # Missing field # 2 (password)
+        user = const_user.copy()
+        del user["password"]
+        res = self.client.post("/login", json=user)
+        # print(res.json)
+        self.assertEqual(res.status_code, 422)
+
     # login user with invalid values
+    def test_login_user_invalid_values(self):
+        const_user = self.test_register_correct_case()
+        del const_user["username"]
+
+        # Missing field # 1 (email)
+        user = const_user.copy()
+        user["email"] = "non-valid-email"
+        res = self.client.post("/login", json=user)
+        # print(res.json)
+        self.assertEqual(res.status_code, 422)
+
+        # Missing field # 2 (password)
+        user = const_user.copy()
+        user["password"] = "a" * 70
+        res = self.client.post("/login", json=user)
+        # print(res.json)
+        self.assertEqual(res.status_code, 422)
+
+    # login user with invalid value types
+    def test_login_user_invalid_value_types(self):
+        const_user = self.test_register_correct_case()
+        del const_user["username"]
+
+        # Invalid value for # 1 (email)
+        user = const_user.copy()
+        user["email"] = 55
+        res = self.client.post("/login", json=user)
+        # print(res.json)
+        self.assertEqual(res.status_code, 422)
+
+        # Invalid value for # 2 (password)
+        user = const_user.copy()
+        user["password"] = 55
+        res = self.client.post("/login", json=user)
+        # print(res.json)
+        self.assertEqual(res.status_code, 422)
+
     # login user, pass extra values in request
+    def test_login_user_extra_values_in_request(self):
+        const_user = self.test_register_correct_case()
+        del const_user["username"]
+
+        # Extra values in request
+        user = const_user.copy()
+        user["extra_field"] = 55
+        res = self.client.post("/login", json=user)
+        # print(res.json)
+        self.assertEqual(res.status_code, 422)
+
     # login user, while user is already logged in
+    # def test_login_when_already_loggedin(self):
+    #     logged_in_user = self.test_login_happy_case()
+
+    #     res = self.client.post("/login", json=logged_in_user)
+    #     print(res.json)
+    #     self.assertEqual(res.status_code, 422)
 
     # logout user when user is logged in
     # logout user when no user is logged in
